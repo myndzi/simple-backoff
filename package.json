@@ -1,0 +1,29 @@
+{
+  "name": "simple-backoff",
+  "version": "1.0.0",
+  "description": "Simple backoff calculation with multiple strategies",
+  "main": "simple-backoff.js",
+  "scripts": {
+    "test": "mocha -u bdd --bail *.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myndzi/simple-backoff.git"
+  },
+  "keywords": [
+    "backoff",
+    "linear",
+    "fibonacci",
+    "exponential"
+  ],
+  "author": "Kris Reeves",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/myndzi/simple-backoff/issues"
+  },
+  "homepage": "https://github.com/myndzi/simple-backoff#readme",
+  "devDependencies": {
+    "mocha": "^2.2.5",
+    "should": "^7.0.3"
+  }
+}
