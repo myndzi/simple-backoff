@@ -73,7 +73,7 @@ function ExponentialBackoff(opts) {
   opts = opts || { };
   Backoff.call(this, opts);
   var factor = parseFloat(opts.factor);
-  this.factor = !isNaN(factor) && factor > 1 ? factor : 1.2;
+  this.factor = !isNaN(factor) && factor > 1 ? factor : 2;
 }
 inherits(ExponentialBackoff, Backoff);
 ExponentialBackoff.prototype._spread = function () {
