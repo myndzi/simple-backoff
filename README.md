@@ -5,7 +5,7 @@ Calculates the delay values for various backoff mechanisms. Like [backoff][1], e
 # Usage
 
     var LinearBackoff = require('simple-backoff').LinearBackoff;
-    
+
     var backoff = new LinearBackoff({
         min: 10,
         step: 50
@@ -18,13 +18,13 @@ Calculates the delay values for various backoff mechanisms. Like [backoff][1], e
 Outputs:
 
     10
-    60 
+    60
     10
 
 # API
 
 ### constructor
-Three constructors are exported: `LinearBackoff`, `ExponentialBackoff`, and `FibonacciBackoff`. They each have slightly different options, but all accept a basic set of core options, passed as an options bag:
+Four constructors are exported: `LinearBackoff`, `ExponentialBackoff`, `FibonacciBackoff`, and `FixedBackoff`. They each have slightly different options, but the first three accept a basic set of core options, passed as an options bag:
 
     new LinearBackoff({
         min: 10,
@@ -38,7 +38,7 @@ Three constructors are exported: `LinearBackoff`, `ExponentialBackoff`, and `Fib
         max: 10000,
         factor: 2,
         jitter: 0
-    }); 
+    });
 
     new FibonacciBackoff({
         min: 10,
@@ -47,6 +47,14 @@ Three constructors are exported: `LinearBackoff`, `ExponentialBackoff`, and `Fib
     });
 
 The values shown above are the defaults.
+
+`FixedBackoff` is a bit different, and accepts an array of integers >= 0. `min` and `max` are invalid since the sequence is explicit. Jitter is accepted, however.
+
+    new FixedBackoff({
+        sequence: [100, 300, 5000, ...],
+        jitter: 0
+    });
+
 
 ### backoff.next()
 
@@ -70,7 +78,10 @@ Specifies the maximum value of the sequence. Calls to `next` will not increase t
 Used only for `LinearBackoff`. This value is added to the previous value to arrive at the next value in the sequence.
 
 ### factor
-Used only for `ExponentialBackoff`. This value is multiplied by the previous value to arrive at the next value in the sequence. 
+Used only for `ExponentialBackoff`. This value is multiplied by the previous value to arrive at the next value in the sequence.
+
+### sequence
+Used only for `FixedBackoff`. Must be an array of one or more integers >= 0. It need not be monotonically increasing. Specifies the values to produce in sequence.
 
 ### jitter
 A number between 0 and 1, inclusive. The `jitter` value specifies a percentage of the difference between the current and next values, centered on the current value. Jitter is cumulative.
@@ -88,6 +99,7 @@ The range of values used for jitter varies slightly depending on the backoff str
 - For linear, the range is the same as the step.
 - For exponential, the range is the difference between the previous value and the current value. The previous value is calculated from the initial value when applicable.
 - For fibonacci, the range is the difference between the last value in the sequence and the current value in the sequence. When these are the same (e.g. at the beginning of a sequence), the range is the same as the current value.
+- For fixed backoff, the range is the difference between the previous value and the current value, or the first value when the backoff is in its initial state.
 
 The point of the `jitter` option is to vary values such as reconnect times from clients when a server restarts to avoid everything trying to reconnect at the same time.
 

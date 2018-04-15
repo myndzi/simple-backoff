@@ -131,3 +131,86 @@ describe('Fibonacci backoff', function () {
     (Math.round(sum/4000)*4).should.eql(144);
   });
 });
+describe('Sequence backoff', function () {
+  var FixedBackoff = backoff.FixedBackoff;
+  it('should require a sequence', function () {
+    (function () {
+      new FixedBackoff();
+    }).should.throw(/FixedBackoff.*must be an array/);
+  });
+  it('should require sequence to be an array', function () {
+    (function () {
+      new FixedBackoff({sequence: {}});
+    }).should.throw(/FixedBackoff.*must be an array/);
+  });
+  it('should require sequence to be an array with at least one value', function () {
+    (function () {
+      new FixedBackoff({sequence: []});
+    }).should.throw(/FixedBackoff.*must be an array/);
+  });
+  it('should require sequence to contain only integers >= 0', function () {
+    [ -1, Infinity, 'foo', new Date(), null, void 0, 1.2 ]
+    .forEach(function (v) {
+      (function () {
+        new FixedBackoff({sequence: [v]});
+      }).should.throw(/FixedBackoff.*must be an array/);
+      (function () {
+        new FixedBackoff({sequence: [1, v]});
+      }).should.throw(/FixedBackoff.*must be an array/);
+    });
+  });
+  it('should fail if min or max are specified', function () {
+    (function () {
+      new FixedBackoff({sequence: [1], min: 0});
+    }).should.throw(/FixedBackoff.*is invalid/);
+    (function () {
+      new FixedBackoff({sequence: [1], max: 0});
+    }).should.throw(/FixedBackoff.*is invalid/);
+  });
+  it('should instantiate with default options, with a valid sequence', function () {
+    new FixedBackoff({ sequence: [0, 1, 10] });
+  });
+  it('should iterate through the sequence, repeating on the last value', function () {
+    var b = new FixedBackoff({ sequence: [0, 3, 10] });
+    [0, 3, 10, 10]
+    .forEach(function (val) {
+      b.next().should.equal(val);
+    });
+  });
+  it('should reset correctly', function () {
+    var b = new FixedBackoff({ sequence: [0, 3, 10] });
+    b.next().should.equal(0);
+    b.next().should.equal(3);
+    b.reset();
+    b.next().should.equal(0);
+  });
+  it('should vary with jitter, within bounds and averaging to the current value (first item)', function () {
+    var b = new FixedBackoff({ sequence: [100, 300, 500], jitter: 0.5 });
+    var sum = 0, eql = 0, next;
+    for (var i = 0; i < 1000; i++) {
+      b.reset();
+      next = b.next();
+      if (next === 100) { eql++; }
+      next.should.not.be.below(50);
+      next.should.not.be.above(150);
+      sum += next;
+    }
+    eql.should.be.below(50);
+    (Math.round(sum/10000)*10).should.eql(100);
+  });
+  it('should vary with jitter, within bounds and averaging to the current value (second item)', function () {
+    var b = new FixedBackoff({ sequence: [100, 148, 500], jitter: 0.5 });
+    var sum = 0, eql = 0, next;
+    for (var i = 0; i < 1000; i++) {
+      b.reset();
+      b.next();
+      next = b.next();
+      if (next === 148) { eql++; }
+      next.should.not.be.below(136);
+      next.should.not.be.above(160);
+      sum += next;
+    }
+    eql.should.be.below(50);
+    (Math.round(sum/10000)*10).should.eql(150);
+  });
+});
